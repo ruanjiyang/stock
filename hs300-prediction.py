@@ -21,8 +21,9 @@ import matplotlib.pyplot as plt
 
 hs300DataHist=(ts.get_hist_data('399300'))
 hs300DataHist=np.array(hs300DataHist) #转为numpy
-totalHistDay=600
-hs300DataHist=hs300DataHist[0:600]   # 取最近的600天数据。
+totalHistDay=601
+time_steps=60 
+hs300DataHist=hs300DataHist[0:totalHistDay]   # 取最近的600天数据。
 print("一共有多少天的历史记录：",totalHistDay)
 newHS300DataHist=np.zeros((totalHistDay,13)) # 数据的倒序， 最早的数据放在最开头，这样训练的时候可以有序进行。
 
@@ -30,10 +31,10 @@ for i in range(totalHistDay):
     # 数据的倒序， 最早的数据放在最开头，这样训练的时候可以有序进行。
     newHS300DataHist[i]=hs300DataHist[totalHistDay-i-1] 
 
-x=newHS300DataHist[-21:-1].reshape([1,20,13])
-x=hs300DataHist[:21].reshape([1,20,13])
-# print(x.shape)
-# print(x)
+x=newHS300DataHist[-time_steps-1:-1].reshape([1,time_steps,13])
+#x=hs300DataHist[:time_steps+1].reshape([1,time_steps,13])
+print(x.shape)
+print(x)
 
 model = load_model('hs300.h5')
 preds = model.predict(x)
