@@ -23,6 +23,7 @@ hs300DataHist=(ts.get_hist_data('399300'))
 hs300DataHist=np.array(hs300DataHist) #转为numpy
 totalHistDay=601
 time_steps=60 
+Feature_number=1
 hs300DataHist=hs300DataHist[0:totalHistDay]   # 取最近的600天数据。
 print("一共有多少天的历史记录：",totalHistDay)
 newHS300DataHist=np.zeros((totalHistDay,13)) # 数据的倒序， 最早的数据放在最开头，这样训练的时候可以有序进行。
@@ -30,9 +31,9 @@ newHS300DataHist=np.zeros((totalHistDay,13)) # 数据的倒序， 最早的数�
 for i in range(totalHistDay):
     # 数据的倒序， 最早的数据放在最开头，这样训练的时候可以有序进行。
     newHS300DataHist[i]=hs300DataHist[totalHistDay-i-1] 
-
-x=newHS300DataHist[-time_steps-1:-1].reshape([1,time_steps,13])
-#x=hs300DataHist[:time_steps+1].reshape([1,time_steps,13])
+newHS300DataHist=newHS300DataHist[:,3]
+x=newHS300DataHist[-time_steps-1:-1].reshape([1,time_steps,Feature_number])
+#x=hs300DataHist[:time_steps+1].reshape([1,time_steps,Feature_number])
 print(x.shape)
 print(x)
 
@@ -42,7 +43,7 @@ print(preds)
 # ########################开始搭建神经网络#############################
 # model=Sequential()
 # training_batch_size=20
-# model.add(LSTM(100,activation='softsign',input_shape = (20, 13),dropout=0.2,recurrent_dropout=0.1, stateful=False,return_sequences=False))  #stateful=True,可以使得帧组之间产生关联。 记得要在fit时候，shuffle=True。
+# model.add(LSTM(100,activation='softsign',input_shape = (20, Feature_number),dropout=0.2,recurrent_dropout=0.1, stateful=False,return_sequences=False))  #stateful=True,可以使得帧组之间产生关联。 记得要在fit时候，shuffle=True。
 # # model.add(LSTM(200,activation='tanh',input_shape = (time_steps, total_EEG_Features),dropout=0.2,recurrent_dropout=0.1, stateful=False,return_sequences=False))  #stateful=True,可以使得帧组之间产生关联。 记得要在fit时候，shuffle=True。
 
 # # model.add(Dense(100,kernel_regularizer=regularizers.l2(0.002),bias_regularizer=regularizers.l2(0.002)))
@@ -68,7 +69,7 @@ print(preds)
 # model.add(Dropout(0.2))
 # #model.add(Dropout(0.2))
 
-# model.add(Dense(13))
+# model.add(Dense(Feature_number))
 # model.add(Activation('linear'))
 # #rmsprop=RMSprop(lr=0.001, rho=0.9, epsilon=1e-6)
 # adam=Adam(lr=0.02, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)

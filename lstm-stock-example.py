@@ -7,20 +7,20 @@ import matplotlib.pyplot as plt
 #构建长短时神经网络需要的方法
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential,save_model,load_model
-from keras.layers import Dense, LSTM, BatchNormalization
+from keras.layers import Dense, LSTM, BatchNormalization,Activation,Dropout
  
 #需要之前90次的数据来预测下一次的数据
 need_num = 90
 #训练数据的大小
-training_num = 6000
+training_num = 600
 #迭代10次
-epoch = 10
-batch_size = 32
+epoch = 50
+batch_size = 8
  
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
-dataset = pd.read_csv('Shanghai.csv')
-dataset = dataset.iloc[:, 5:6].values
+dataset = pd.read_csv('399300.csv')
+dataset = dataset.iloc[:, 3:4].values
 for i in range(1):   #填入延长预测的天数。（n
     #我们需要预测开盘数据，因此选取所有行、第三列数据
     #训练数据就是上面已经读取数据的前6000行
@@ -49,17 +49,25 @@ for i in range(1):   #填入延长预测的天数。（n
     #构建网络，使用的是序贯模型
     model = Sequential()
     #return_sequences=True返回的是全部输出，LSTM做第一层时，需要指定输入shape
-    model.add(LSTM(units=128, return_sequences=True, input_shape=[x_train.shape[1], 1]))
-    model.add(BatchNormalization())
+    model.add(LSTM(units=50,return_sequences=True,input_shape=[x_train.shape[1], 1]))
+    # model.add(BatchNormalization())
     
-    model.add(LSTM(units=128))
-    model.add(BatchNormalization())
+    model.add(LSTM(units=50))
+    #model.add(BatchNormalization())
+
+    model.add(Dense(30))
+    model.add(Activation('relu'))
+    #model.add(Dropout(0.2))
+    model.add(Dense(30))
+    model.add(Activation('relu'))
+    #model.add(Dropout(0.2))
+
     
     model.add(Dense(units=1))
     #进行配置
     model.compile(optimizer='adam',
                 loss='mean_squared_error')
-    model.fit(x=x_train, y=y_train, epochs=epoch, batch_size=batch_size)
+    model.fit(x=x_train, y=y_train,  epochs=epoch, batch_size=batch_size)
     model.save("lstm-stock-example.h5")
     model=load_model("lstm-stock-example.h5")
     
