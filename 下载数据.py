@@ -1,24 +1,10 @@
 import tushare as ts 
-
-# import numpy as np 
-# import sys
-# import numpy as np
-# import keras
-# from keras.models import Sequential, Model,load_model
-# from keras.layers import Dense, Dropout,Activation,Input
-# from keras.layers import Embedding, LSTM,SimpleRNN, Reshape
-# from keras.optimizers import RMSprop,Adam
-# from keras.utils import np_utils
-# from keras.callbacks import TensorBoard,EarlyStopping
+import numpy
+ts.set_token('db42fb5372bce72ab61f22ef0a3310d5c441f09d17817f1cafd3ace2')
 
 
-hs300DataHist=(ts.get_hist_data('399300'))
-hs300DataHist.sort_values(by='date', inplace=True)  #按照日期，从早到晚排序
-
-hs300DataHist.to_csv('399300.csv',header=1) 
-
-
-hs300DataHist=(ts.get_hist_data('000001'))
-hs300DataHist.sort_values(by='date', inplace=True)  #按照日期，从早到晚排序
-
-hs300DataHist.to_csv('000001.csv',header=1) 
+df = ts.pro_bar(ts_code='600036.SH', adj='qfq', start_date='20100101', end_date='20190923')
+df.sort_values(by='trade_date', inplace=True)
+df.to_csv('600036.csv',header=1) 
+# df = ts.pro_bar(ts_code='399300.SZ', asset='I', start_date='20100101', end_date='20190923')
+# print(df)
