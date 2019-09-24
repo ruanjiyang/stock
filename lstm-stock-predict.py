@@ -82,9 +82,9 @@ for days in range(5):   #填入延长预测的天数。（n
 
     
 #绘制数据图表，红色是真实数据，蓝色是预测数据
-predictes_stock_price=np.vstack((real_stock_price,predictes_stock_price[2:]))
-plt.plot(predictes_stock_price[:,3:4]-1, color='blue', label='Predicted Stock Close Price',linestyle='--',marker='o')
-plt.plot(real_stock_price[:,3:4], color='red', label='Real Stock Close Price')
+#predictes_stock_price=np.vstack((real_stock_price,predictes_stock_price[3:]))
+plt.plot(predictes_stock_price[1:,3:4]-2/100*predictes_stock_price[-1][3], color='blue', label='Predicted Stock Close Price',linestyle='--',marker='o')
+#plt.plot(real_stock_price[:,3:4], color='red', label='Real Stock Close Price')
 #print('Real Stock Close Price',real_stock_price[:,2:3])
 
 
