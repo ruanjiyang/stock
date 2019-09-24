@@ -20,7 +20,7 @@ features_num=9
  
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
-stockCode="600519"
+stockCode="399300"
 dataset = pd.read_csv(stockCode+'.csv')
 training_num=len(dataset)-1
 dataset = dataset.iloc[:, 3:features_num+3].values
@@ -31,7 +31,7 @@ real_stock_price = dataset[training_num-5:]  #这是真实的数据。  -5表示
 dataset = pd.read_csv(stockCode+'.csv')
 dataset = dataset.iloc[:training_num+1, 3:features_num+3].values
 
-for days in range(5):   #填入延长预测的天数。（n
+for days in range(6):   #填入延长预测的天数。（n
     #我们需要预测开盘数据，因此选取所有行、第三列数据
     #训练数据就是上面已经读取数据的前6000行
    # training_dataset = dataset[:training_num]
@@ -47,7 +47,7 @@ for days in range(5):   #填入延长预测的天数。（n
     #training_dataset_scaled = sc.fit_transform(X=training_dataset)
 
 
-    model=load_model("lstm-stock-example.h5")
+    model=load_model(stockCode+".h5")
     
     #进行测试数据的处理
     #前6000个为测试数据，但是将5910，即6000-90个数据作为输入数据，因为这样可以获取
@@ -82,10 +82,11 @@ for days in range(5):   #填入延长预测的天数。（n
 
     
 #绘制数据图表，红色是真实数据，蓝色是预测数据
-#predictes_stock_price=np.vstack((real_stock_price,predictes_stock_price[3:]))
-plt.plot(predictes_stock_price[1:,3:4]-2/100*predictes_stock_price[-1][3], color='blue', label='Predicted Stock Close Price',linestyle='--',marker='o')
+# predictes_stock_price=np.vstack((real_stock_price,predictes_stock_price[2:]))
+# plt.plot(predictes_stock_price[0:,3:4]-2/100*predictes_stock_price[-1][3], color='blue', label='Predicted Stock Close Price',linestyle='--',marker='o')
+plt.plot(predictes_stock_price[0:,3:4], color='blue', label='Predicted Stock Close Price(include today)',linestyle='--',marker='o')
 #plt.plot(real_stock_price[:,3:4], color='red', label='Real Stock Close Price')
-#print('Real Stock Close Price',real_stock_price[:,2:3])
+# print('Real Stock Close Price',real_stock_price[:,2:3])
 
 
 # plt.plot(real_stock_price[:,0:1], color='darkred', label='Real Stock Open Price')
