@@ -15,4 +15,10 @@ import tushare as ts
 hs300DataHist=(ts.get_hist_data('399300'))
 hs300DataHist.sort_values(by='date', inplace=True)  #按照日期，从早到晚排序
 
-hs300DataHist.to_csv('Result.csv',header=1) 
+hs300DataHist.to_csv('399300.csv',header=1) 
+
+
+hs300DataHist=(ts.get_hist_data('000001'))
+hs300DataHist.sort_values(by='date', inplace=True)  #按照日期，从早到晚排序
+
+hs300DataHist.to_csv('000001.csv',header=1) 

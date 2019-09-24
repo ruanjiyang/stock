@@ -12,15 +12,16 @@ from keras.layers import Dense, LSTM, BatchNormalization
 #需要之前90次的数据来预测下一次的数据
 need_num = 90
 #训练数据的大小
-training_num = 611
+training_num = 600
 #迭代10次
 epoch = 20
 batch_size = 32
  
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
-dataset = pd.read_csv('Result.csv')
+dataset = pd.read_csv('399300.csv')
 dataset = dataset.iloc[:, 3:4].values
+real_stock_price = dataset[training_num:]  #这是真实的数据。
 for days in range(10):   #填入延长预测的天数。（n
     #我们需要预测开盘数据，因此选取所有行、第三列数据
     #训练数据就是上面已经读取数据的前6000行
@@ -57,14 +58,14 @@ for days in range(10):   #填入延长预测的天数。（n
     x_validation = np.reshape(x_validation, (x_validation.shape[0], x_validation.shape[1], 1))
     
     #这是真实的股票价格，是源数据的[6000:]即剩下的231个数据的价格
-    real_stock_price = dataset[training_num:]
+    
     #进行预测
     print(x_validation.shape)
     predictes_stock_price = model.predict(x=x_validation)
     #使用 sc.inverse_transform()将归一化的数据转换回原始的数据，以便我们在图上进行查看
     predictes_stock_price = sc.inverse_transform(X=predictes_stock_price)
     dataset=np.append(dataset,predictes_stock_price[-1])
-    # dataset=np.append(dataset,[10000])
+    #dataset=np.append(dataset,[3900+random.random()*300])
     print("新预测的到第%d天的总数据是=============="%(days+1),(predictes_stock_price))
     dataset=dataset.reshape((-1,1))
     print(dataset.shape)
@@ -72,7 +73,7 @@ for days in range(10):   #填入延长预测的天数。（n
 
     
 #绘制数据图表，红色是真实数据，蓝色是预测数据
-#plt.plot(real_stock_price, color='red', label='Real Stock Price')
+plt.plot(real_stock_price, color='red', label='Real Stock Price')
 plt.plot(predictes_stock_price, color='blue', label='Predicted Stock Price')
 plt.title(label='ShangHai Stock Price Prediction')
 plt.xlabel(xlabel='Time')
