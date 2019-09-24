@@ -20,7 +20,7 @@ batch_size = 32
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
 dataset = pd.read_csv('Shanghai.csv')
-dataset = dataset.iloc[:, 5:6].values
+dataset = dataset.iloc[:, 1:].values
 for i in range(1):   #填入延长预测的天数。（n
     #我们需要预测开盘数据，因此选取所有行、第三列数据
     #训练数据就是上面已经读取数据的前6000行
