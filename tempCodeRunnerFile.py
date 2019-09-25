@@ -1,1 +1,1 @@
-600519
+dataset=dataset.fillna(0)

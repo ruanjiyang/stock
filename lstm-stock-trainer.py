@@ -16,14 +16,16 @@ need_num = 90
 #训练数据的大小
 training_num = 0
 #迭代10次
-epoch = 20
+epoch = 30
 batch_size = 8  #batch_size越低， 预测精度越搞，曲线越曲折。
-features_num=9
-stockCode="399300"
+features_num=27
+patience_times=5
+stockCode="601258.SH"
 
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
 dataset = pd.read_csv(stockCode+'.csv')
+dataset=dataset.fillna(0)
 training_num=len(dataset)-1
 dataset = dataset.iloc[:, 3:features_num+3].values  #从第4列开始读， 避开前三列。
 
@@ -55,17 +57,17 @@ x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], features_num)
 model = Sequential()
 #return_sequences=True返回的是全部输出，LSTM做第一层时，需要指定输入shape
 model.add(LSTM(units=50,return_sequences=True,input_shape=[x_train.shape[1], features_num]))
-#model.add(BatchNormalization())
+model.add(BatchNormalization())
 
 model.add(LSTM(units=50))
-#model.add(BatchNormalization())
+model.add(BatchNormalization())
 
 model.add(Dense(30))
 model.add(Activation('relu'))
-#model.add(Dropout(0.2))
+model.add(Dropout(0.1))
 model.add(Dense(30))
 model.add(Activation('relu'))
-#model.add(Dropout(0.2))
+model.add(Dropout(0.1))
 
 
 model.add(Dense(units=features_num))
@@ -75,7 +77,7 @@ adam=Adam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=T
 model.compile(optimizer=adam,loss='mean_squared_error')
 
 print(x_train.shape,y_train.shape)
-early_stopping=callbacks.EarlyStopping(monitor='val_loss',patience=5, verbose=2, mode='auto')
+early_stopping=callbacks.EarlyStopping(monitor='val_loss',patience=patience_times, verbose=2, mode='min')
 #min_delta=0,baseline=None, restore_best_weights=False)
 
 model.fit(x=x_train, y=y_train,  epochs=epoch, batch_size=batch_size,validation_split=0.2,callbacks = [early_stopping])

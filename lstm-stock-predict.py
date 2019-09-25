@@ -14,24 +14,30 @@ need_num = 90
 #训练数据的大小
 training_num = 0
 #迭代10次
-epoch = 1
-batch_size = 4
-features_num=9
- 
+epoch = 30
+batch_size = 8  #batch_size越低， 预测精度越搞，曲线越曲折。
+features_num=27
+patience_times=7
+stockCode="600036.SH"
+
+
+predict_days=7  #一共预测几天（包括今天）
+
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
-stockCode="399300"
 dataset = pd.read_csv(stockCode+'.csv')
+dataset=dataset.fillna(0)
 training_num=len(dataset)-1
 dataset = dataset.iloc[:, 3:features_num+3].values
-real_stock_price = dataset[training_num-5:]  #这是真实的数据。  -5表示五天前的数据
+real_stock_price = dataset[training_num-5:]  #这是真实的数据。  -5表示取出五天前到今天的数据
 
 
 
 dataset = pd.read_csv(stockCode+'.csv')
+dataset=dataset.fillna(0)
 dataset = dataset.iloc[:training_num+1, 3:features_num+3].values
 
-for days in range(6):   #填入延长预测的天数。（n
+for days in range(predict_days):   #填入延长预测的天数。（n
     #我们需要预测开盘数据，因此选取所有行、第三列数据
     #训练数据就是上面已经读取数据的前6000行
    # training_dataset = dataset[:training_num]
@@ -84,8 +90,8 @@ for days in range(6):   #填入延长预测的天数。（n
 #绘制数据图表，红色是真实数据，蓝色是预测数据
 # predictes_stock_price=np.vstack((real_stock_price,predictes_stock_price[2:]))
 # plt.plot(predictes_stock_price[0:,3:4]-2/100*predictes_stock_price[-1][3], color='blue', label='Predicted Stock Close Price',linestyle='--',marker='o')
-plt.plot(predictes_stock_price[0:,3:4], color='blue', label='Predicted Stock Close Price(include today)',linestyle='--',marker='o')
-#plt.plot(real_stock_price[:,3:4], color='red', label='Real Stock Close Price')
+plt.plot(predictes_stock_price[0:,0:1], color='blue', label='Predicted Stock Close Price(include today)',linestyle='--',marker='o')
+plt.plot(real_stock_price[:,3:4], color='red', label='Real Stock Close Price')
 # print('Real Stock Close Price',real_stock_price[:,2:3])
 
 
