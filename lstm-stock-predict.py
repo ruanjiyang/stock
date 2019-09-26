@@ -16,9 +16,9 @@ training_num = 0
 #迭代10次
 epoch = 30
 batch_size = 8  #batch_size越低， 预测精度越搞，曲线越曲折。
-features_num=27
+features_num=9
 patience_times=7
-stockCode="600036.SH"
+stockCode="000001-index"
 
 
 predict_days=7  #一共预测几天（包括今天）
