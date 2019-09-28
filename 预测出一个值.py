@@ -10,7 +10,7 @@ from keras.models import Sequential,save_model,load_model
 from keras.layers import Dense, LSTM, BatchNormalization
  
 #需要之前90次的数据来预测下一次的数据
-need_num = 5 #一般按周来算，选择5周.  按照天来算，选择60~90天。
+need_num = 10 #一般按周来算，选择5周.  按照天来算，选择60~90天。
 epoch = 30
 batch_size = 8  #batch_size越低， 预测精度越搞，曲线越曲折。
 patience_times=5
@@ -51,6 +51,9 @@ for days in range(predict_days):   #填入延长预测的天数。（n
     然后对该trainData进行转换transform，从而实现数据的标准化、归一化等等。
     '''
     dataset_scaled = sc.transform(X=dataset)
+
+    dataset_scaled=dataset 
+
     
     x_validation=np.zeros((days+1,need_num,features_num))
     for i in range(days+1):
@@ -58,7 +61,7 @@ for days in range(predict_days):   #填入延长预测的天数。（n
     # print(x_validation)
 
     # print(x_validation.shape)
-
+    print(x_validation)
 
     predictes_stock_price = model.predict(x=x_validation)
     

@@ -69,8 +69,8 @@ model.add(Dense(30))
 model.add(Activation('relu'))
 model.add(Dropout(0.1))
 
-
 model.add(Dense(units=features_num))
+
 #进行配置
 adam=Adam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=True)
 #adam=Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=None, amsgrad=True)

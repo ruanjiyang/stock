@@ -10,14 +10,12 @@ from keras.models import Sequential,save_model,load_model
 from keras.layers import Dense, LSTM, BatchNormalization
  
 #需要之前90次的数据来预测下一次的数据
-need_num = 15 #一般按周来算，选择5周.  按照天来算，选择60~90天。
-epoch = 30
-batch_size = 8  #batch_size越低， 预测精度越搞，曲线越曲折。
-patience_times=5
+need_num = 100 #一般按周来算，选择5周.  按照天来算，选择60~90天。
+
 stockCode="000001-weekly-index"
 model=load_model(stockCode+".h5")
 
-predict_days=2  #一共预测几天（不包括今天）
+predict_days=3  #一共预测几天（不包括今天）
 
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
@@ -26,7 +24,7 @@ dataset=dataset.fillna(0)
 training_num=len(dataset)
 features_num=dataset.shape[1]-3
 dataset = dataset.iloc[:, 3:features_num+3].values
-real_stock_price = dataset[training_num-5:]  #这是真实的数据。  -5表示取出五天前到今天的数据
+real_stock_price = dataset[training_num-20:]  #这是真实的数据。  -5表示取出五天前到今天的数据
 
 sc = MinMaxScaler(feature_range=(0, 1))
 sc.fit_transform(X=dataset[:training_num])  #这是为了和训练用的数据集保持一直的归一化。
@@ -83,15 +81,46 @@ for days in range(predict_days):   #填入延长预测的天数。（n
 # predictes_stock_price=np.vstack((real_stock_price[-1:,],predictes_stock_price))  #把真实的最后一天/周也添加在预测的输出中，作为右边的预测输出曲线的第一天。
 # plt.plot(predictes_stock_price[:,0:1], color='blue', label='Predicted Stock Close Price(include today)',linestyle='--',marker='o')
 
-### 画在一张图上。 
+# ### 画在一张图上。 
+# predictes_stock_price=np.vstack((real_stock_price,predictes_stock_price))  #把真实的最后一天/周也添加在预测的输出中，作为右边的预测输出曲线的第一天。
+# plt.plot(predictes_stock_price[:,0], color='blue', label='Predicted Stock Close Price',linestyle='--',marker='o')
+# plt.plot(real_stock_price[:,0], color='red', label='Real Stock Close Price')
+
+#画在六张图上。
 predictes_stock_price=np.vstack((real_stock_price,predictes_stock_price))  #把真实的最后一天/周也添加在预测的输出中，作为右边的预测输出曲线的第一天。
-plt.plot(predictes_stock_price[:,0:1], color='blue', label='Predicted Stock Close Price(include today)',linestyle='--',marker='o')
-plt.plot(real_stock_price[:,0:1], color='red', label='Real Stock Close Price')
+plt.figure(23)
+plt1=plt.subplot(231)
+plt1.set_title('close',loc='right',fontstyle='italic')
+plt.plot(predictes_stock_price[:,0], color='blue', label='1',linestyle='--',marker='.')
+plt.plot(real_stock_price[:,0], color='red')
 
+plt2=plt.subplot(232)
+plt2.set_title('open',loc='right',fontstyle='italic')
+plt.plot(predictes_stock_price[:,1], color='blue', label='2', linestyle='--',marker='.')
+plt.plot(real_stock_price[:,1], color='red')
 
+plt3=plt.subplot(233)
+plt3.set_title('high',loc='right',fontstyle='italic')
+plt.plot(predictes_stock_price[:,2], color='blue',label='3', linestyle='--',marker='.')
+plt.plot(real_stock_price[:,2], color='red')
 
-plt.title(label=stockCode+'  Stock Price Prediction')
-plt.xlabel(xlabel='Time')
-plt.ylabel(ylabel=stockCode+'  Stock Price')
+plt4=plt.subplot(234)
+plt4.set_title('low',loc='right',fontstyle='italic')
+plt.plot(predictes_stock_price[:,3], color='blue',label='4', linestyle='--',marker='.')
+plt.plot(real_stock_price[:,3], color='red')
+
+plt5=plt.subplot(235)
+plt5.set_title('vol',loc='right',fontstyle='italic')
+plt.plot(predictes_stock_price[:,4], color='blue',label='5', linestyle='--',marker='.')
+plt.plot(real_stock_price[:,4], color='red')
+
+plt6=plt.subplot(236)
+plt6.set_title('amount',loc='right',fontstyle='italic')
+plt.plot(predictes_stock_price[:,5], color='blue',label='6', linestyle='--',marker='.')
+plt.plot(real_stock_price[:,5], color='red')
+
+# plt.title(stockCode+'1-close,2-open,3-high,4-low,5-vol,6-amount')
+# plt.xlabel(xlabel='Time')
+# plt.ylabel(ylabel=stockCode+'  Stock Price')
 plt.legend()
 plt.show()

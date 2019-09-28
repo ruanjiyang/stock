@@ -12,18 +12,21 @@ from keras.layers import Dense, LSTM, BatchNormalization,Activation,Dropout
 from keras.optimizers import RMSprop,Adam
  
 #需要之前90次的数据来预测下一次的数据
-need_num = 100 #一般按周来算，选择5周.  按照天来算，选择60~90天。
-epoch = 100
-batch_size = 4  #batch_size越低， 预测精度越搞，曲线越曲折。
-patience_times=6
-stockCode="000001-weekly-index"
+need_num = 30
+#训练数据的大小
+training_num = 0
+#迭代10次
+epoch = 30
+batch_size = 8  #batch_size越低， 预测精度越搞，曲线越曲折。
+features_num=9
+patience_times=3
+stockCode="000001-index"
 
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
 dataset = pd.read_csv(stockCode+'.csv')
 dataset=dataset.fillna(0)
 training_num=len(dataset)
-features_num=dataset.shape[1]-3
 dataset = dataset.iloc[:, 3:features_num+3].values  #从第4列开始读， 避开前三列。
 
 #我们需要预测开盘数据，因此选取所有行、第三列数据
@@ -37,16 +40,29 @@ fit_transform()对部分数据先拟合fit，
 找到该part的整体指标，如均值、方差、最大值最小值等等（根据具体转换的目的），
 然后对该trainData进行转换transform，从而实现数据的标准化、归一化等等。
 '''
-training_dataset_scaled = sc.fit_transform(X=training_dataset)
+#training_dataset_scaled = sc.fit_transform(X=training_dataset)
+training_dataset_scaled=training_dataset
+for i in range(len(training_dataset)):
+    training_dataset_scaled[i,5]=training_dataset[i,5]*100
+    training_dataset_scaled[i,6]=training_dataset[i,6]*1000
+    training_dataset_scaled[i,7]=training_dataset[i,7]/100000
+    training_dataset_scaled[i,8]=training_dataset[i,8]/100000
 
 x_train = []
 y_train = []
 #每90个数据为一组，作为测试数据，下一个数据为标签
 for i in range(need_num, training_dataset_scaled.shape[0]):
     x_train.append(training_dataset_scaled[i-need_num: i])
-    y_train.append(training_dataset_scaled[i, :])
-    # x_train.append(training_dataset[i-need_num: i])
-    # y_train.append(training_dataset[i, :])
+    #x_train.append(training_dataset[i-need_num: i])
+    #y_train.append(training_dataset[i,5])  #5是个股涨跌金额
+    if training_dataset[i,6]>0:  #6是指数涨跌金额
+        y_train.append(1) 
+    else:
+        y_train.append(0)
+
+print (x_train[-1])
+print(y_train[-1])
+
 #将数据转化为数组
 x_train, y_train = np.array(x_train), np.array(y_train)
 #因为LSTM要求输入的数据格式为三维的，[training_number, time_steps, 1]，因此对数据进行相应转化
@@ -55,33 +71,30 @@ x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], features_num)
 #构建网络，使用的是序贯模型
 model = Sequential()
 #return_sequences=True返回的是全部输出，LSTM做第一层时，需要指定输入shape
-model.add(LSTM(units=128,return_sequences=True,input_shape=[need_num, features_num]))
-#model.add(BatchNormalization())
+model.add(LSTM(units=50,return_sequences=False,input_shape=[x_train.shape[1], features_num]))
+model.add(BatchNormalization())
 
-model.add(LSTM(units=128))
+# model.add(LSTM(units=50))
 # model.add(BatchNormalization())
 
-model.add(Dense(60))
+model.add(Dense(30))
 model.add(Activation('relu'))
-#model.add(Dropout(0.1))
-model.add(Dense(48))
+model.add(Dropout(0.1))
+model.add(Dense(30))
 model.add(Activation('relu'))
-#model.add(Dropout(0.1))
-model.add(Dense(24))
-model.add(Activation('relu'))
-#model.add(Dropout(0.1))
-model.add(Dense(12))
-model.add(Activation('relu'))
-model.add(Dropout(0.5))
+model.add(Dropout(0.1))
 
-model.add(Dense(units=features_num))
+model.add(Dense(1))
+model.add(Activation('sigmoid'))
+
 #进行配置
-adam=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=True)
+adam=Adam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=True)
 #adam=Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=None, amsgrad=True)
-model.compile(optimizer='adam',loss='mean_squared_logarithmic_error')  #mean_absolute_error/mean_squared_error/mean_squared_logarithmic_error/
+#model.compile(optimizer=adam,loss='mean_squared_error')
+model.compile(optimizer=adam,loss='binary_crossentropy',metrics=['accuracy'])
 
 print(x_train.shape,y_train.shape)
-early_stopping=callbacks.EarlyStopping(monitor='val_loss',patience=patience_times, verbose=2, mode='auto')
+early_stopping=callbacks.EarlyStopping(monitor='val_loss',patience=patience_times, verbose=2, mode='min')
 #min_delta=0,baseline=None, restore_best_weights=False)
 
 model.fit(x=x_train, y=y_train,  epochs=epoch, batch_size=batch_size,validation_split=0.2,callbacks = [early_stopping])
