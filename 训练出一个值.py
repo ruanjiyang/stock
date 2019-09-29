@@ -12,11 +12,12 @@ from keras.layers import Dense, LSTM, BatchNormalization,Activation,Dropout
 from keras.optimizers import RMSprop,Adam
  
 #需要之前90次的数据来预测下一次的数据
-need_num = 10 #一般按周来算，选择5周.  按照天来算，选择60~90天。
+need_num = 20 #一般按周来算，选择5周.  按照天来算，选择60~90天。
 epoch = 30
-batch_size = 8  #batch_size越低， 预测精度越搞，曲线越曲折。
-patience_times=5
+batch_size = 16  #batch_size越低， 预测精度越搞，曲线越曲折。
+patience_times=6
 stockCode="000001-weekly-index"
+scale_rate=np.array([7000,0.25*1e13])
 
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
@@ -24,33 +25,39 @@ dataset = pd.read_csv(stockCode+'.csv')
 dataset=dataset.fillna(0)
 training_num=len(dataset)
 features_num=dataset.shape[1]-3
+
 dataset = dataset.iloc[:, 3:features_num+3].values  #从第4列开始读， 避开前三列。
 
 #我们需要预测开盘数据，因此选取所有行、第三列数据
 #训练数据就是上面已经读取数据的前6000行
 training_dataset = dataset[:training_num]
-#因为数据跨度几十年，随着时间增长，人民币金额也随之增长，因此需要对数据进行归一化处理
-#将所有数据归一化为0-1的范围
-sc = MinMaxScaler(feature_range=(0, 1))
-'''
-fit_transform()对部分数据先拟合fit，
-找到该part的整体指标，如均值、方差、最大值最小值等等（根据具体转换的目的），
-然后对该trainData进行转换transform，从而实现数据的标准化、归一化等等。
-'''
-training_dataset_scaled = sc.fit_transform(X=training_dataset)
+
+
+# #因为数据跨度几十年，随着时间增长，人民币金额也随之增长，因此需要对数据进行归一化处理
+# #将所有数据归一化为0-1的范围
+# sc = MinMaxScaler(feature_range=(0, 1))
+# '''
+# fit_transform()对部分数据先拟合fit，
+# 找到该part的整体指标，如均值、方差、最大值最小值等等（根据具体转换的目的），
+# 然后对该trainData进行转换transform，从而实现数据的标准化、归一化等等。
+# '''
+# training_dataset_scaled = sc.fit_transform(X=training_dataset)
+
+training_dataset_scaled=training_dataset/scale_rate
 
 x_train = []
 y_train = []
 #每90个数据为一组，作为测试数据，下一个数据为标签
 for i in range(need_num, training_dataset_scaled.shape[0]):
-    #x_train.append(training_dataset_scaled[i-need_num: i])
-    x_train.append(training_dataset[i-need_num: i])
+    x_train.append(training_dataset_scaled[i-need_num: i])
+    #x_train.append(training_dataset[i-need_num: i])
     #y_train.append(training_dataset_scaled[i, :])  #y为一行数值
     #y_train.append(training_dataset[i, 0]) #y为一个数值. 0列为 close价
-    if training_dataset[i,0]-training_dataset[i-1,0]>0:
-        y_train.append(1)
-    else:
-        y_train.append(0)
+    y_train.append(training_dataset_scaled[i,0])
+    # if training_dataset[i,0]-training_dataset[i-1,0]>0:
+    #     y_train.append([1,0])
+    # else:
+    #     y_train.append([0,1])
 # print("X===============",x_train)
 # print("Y===============",y_train)
 #将数据转化为数组
@@ -61,10 +68,10 @@ x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], features_num)
 #构建网络，使用的是序贯模型
 model = Sequential()
 #return_sequences=True返回的是全部输出，LSTM做第一层时，需要指定输入shape
-model.add(LSTM(units=128,activation='tanh',return_sequences=False,input_shape=[x_train.shape[1], features_num]))
-model.add(BatchNormalization())
+model.add(LSTM(units=128,return_sequences=True,input_shape=[need_num, features_num]))
+#model.add(BatchNormalization())
 
-# model.add(LSTM(units=128,activation='tanh'))
+model.add(LSTM(units=128))
 # model.add(BatchNormalization())
 
 model.add(Dense(60))
@@ -78,21 +85,22 @@ model.add(Activation('relu'))
 #model.add(Dropout(0.1))
 model.add(Dense(12))
 model.add(Activation('relu'))
-#model.add(Dropout(0.1))
+#model.add(Dropout(0.5))
 
 model.add(Dense(units=features_num))
-model.add(Dropout(0.5))
+# model.add(Dropout(0.5))
 model.add(Dense(1))
-#model.add(Activation('sigmoid'))
+# model.add(Activation('softmax'))
 #进行配置
-adam=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=True)
+adam=Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=True)
 #adam=Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=None, amsgrad=True)
-model.compile(optimizer=adam,loss='mean_squared_error') #binary_cross
+model.compile(optimizer='adam',loss='mean_squared_logarithmic_error')  #metrics=['accuracy']/binary_cross / mean_squared_error /categorical_crossentropy/mean_squared_logarithmic_error
 #model.compile(optimizer='rmsprop', loss='binary_crossentropy')
 
 print(x_train.shape,y_train.shape)
 early_stopping=callbacks.EarlyStopping(monitor='val_loss',patience=patience_times, verbose=2, mode='min')
 #min_delta=0,baseline=None, restore_best_weights=False)
 
+print(x_train[-1],y_train[-1])
 model.fit(x=x_train, y=y_train,  epochs=epoch, batch_size=batch_size,validation_split=0.2,callbacks = [early_stopping])
 model.save(stockCode+".h5")

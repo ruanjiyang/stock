@@ -38,7 +38,12 @@ set_end_date='20191231'
 #指数周k
 pro = ts.pro_api('db42fb5372bce72ab61f22ef0a3310d5c441f09d17817f1cafd3ace2')
 df = pro.index_weekly(ts_code='000001.SH',adj='qfq', start_date=set_start_date, end_date=set_end_date, fields='ts_code,trade_date,open,high,low,close,vol,amount')
-
-# df = pro.index_weekly(ts_code='000001.SH', adj='qfq', start_date=set_start_date, end_date=set_end_date)
 df.sort_values(by='trade_date', inplace=True)
 df.to_csv('000001-weekly-index.csv',header=1) 
+
+
+#指数月k
+pro = ts.pro_api('db42fb5372bce72ab61f22ef0a3310d5c441f09d17817f1cafd3ace2')
+df = pro.index_monthly(ts_code='000001.SH',adj='qfq',start_date=set_start_date, end_date=set_end_date,  fields='ts_code,trade_date,open,high,low,close,vol,amount')
+df.sort_values(by='trade_date', inplace=True)
+df.to_csv('000001-monthly-index.csv',header=1) 

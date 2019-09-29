@@ -10,14 +10,16 @@ from keras.models import Sequential,save_model,load_model
 from keras.layers import Dense, LSTM, BatchNormalization
  
 #需要之前90次的数据来预测下一次的数据
-need_num = 10 #一般按周来算，选择5周.  按照天来算，选择60~90天。
+need_num = 20#一般按周来算，选择5周.  按照天来算，选择60~90天。
 epoch = 30
 batch_size = 8  #batch_size越低， 预测精度越搞，曲线越曲折。
 patience_times=5
 stockCode="000001-weekly-index"
+scale_rate=np.array([7000,0.25*1e13])
 model=load_model(stockCode+".h5")
 
 predict_days=1  #一共预测几天（不包括今天）
+
 
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
@@ -50,10 +52,11 @@ for days in range(predict_days):   #填入延长预测的天数。（n
     找到该part的整体指标，如均值、方差、最大值最小值等等（根据具体转换的目的），
     然后对该trainData进行转换transform，从而实现数据的标准化、归一化等等。
     '''
-    dataset_scaled = sc.transform(X=dataset)
+    # dataset_scaled = sc.transform(X=dataset)
 
-    dataset_scaled=dataset 
+    # dataset_scaled=dataset 
 
+    dataset_scaled=dataset/scale_rate
     
     x_validation=np.zeros((days+1,need_num,features_num))
     for i in range(days+1):
@@ -68,7 +71,7 @@ for days in range(predict_days):   #填入延长预测的天数。（n
     #使用 sc.inverse_transform()将归一化的数据转换回原始的数据，以便我们在图上进行查看
     #predictes_stock_price = sc.inverse_transform(X=predictes_stock_price)
 
-    print("新预测的到第%d天的总数据是=============="%(days+1),(predictes_stock_price))
+    print("新预测的到第%d天的总数据是=============="%(days+1),(predictes_stock_price*scale_rate[0]))
 
 
 
