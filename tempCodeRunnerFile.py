@@ -1,1 +1,1 @@
-scale_rate=np.array([7000,0.25*1e13])
+Adam

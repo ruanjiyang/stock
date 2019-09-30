@@ -12,13 +12,13 @@ from keras.layers import Dense, LSTM, BatchNormalization,Activation,Dropout
 from keras.optimizers import RMSprop,Adam
  
 #需要之前90次的数据来预测下一次的数据
-need_num = 12 #一般按周来算，选择5周.  按照天来算，选择60~90天。
-epoch = 50
-batch_size = 4  #batch_size越低， 预测精度越搞，曲线越曲折。
+need_num = 240 #一般按周来算，选择5周.  按照天来算，选择60~90天。
+epoch = 10
+batch_size = 3  #batch_size越低， 预测精度越搞，曲线越曲折。
 patience_times=5
 
 
-stockCode="000001-monthly-index"
+stockCode="000001-weekly-index"
 scale_rate=np.array([7000,7000,7000,7000,0.25*1e12,0.25*1e13])   #上证周K线用。
 #scale_rate=np.array([3000,3000,3000,3000,1e8,1e9]) #上证月K线用。
 
@@ -42,8 +42,8 @@ fit_transform()对部分数据先拟合fit，
 找到该part的整体指标，如均值、方差、最大值最小值等等（根据具体转换的目的），
 然后对该trainData进行转换transform，从而实现数据的标准化、归一化等等。
 '''
-#training_dataset_scaled = sc.fit_transform(X=training_dataset)
-training_dataset_scaled=training_dataset/scale_rate
+training_dataset_scaled = sc.fit_transform(X=training_dataset)
+#training_dataset_scaled=training_dataset/scale_rate  #使用我定义的scale_rate
 
 x_train = []
 y_train = []
@@ -61,22 +61,22 @@ x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], features_num)
 #构建网络，使用的是序贯模型
 model = Sequential()
 #return_sequences=True返回的是全部输出，LSTM做第一层时，需要指定输入shape
-model.add(LSTM(units=20,return_sequences=True,input_shape=[need_num, features_num]))
+model.add(LSTM(units=128,return_sequences=True,input_shape=[need_num, features_num]))
 #model.add(BatchNormalization())
 
-model.add(LSTM(units=20))
+model.add(LSTM(units=128))
 # model.add(BatchNormalization())
 
-model.add(Dense(20))
+model.add(Dense(64))
 model.add(Activation('relu'))
 #model.add(Dropout(0.1))
-model.add(Dense(20))
+model.add(Dense(32))
 model.add(Activation('relu'))
 #model.add(Dropout(0.1))
-model.add(Dense(10))
+model.add(Dense(24))
 model.add(Activation('relu'))
 #model.add(Dropout(0.1))
-model.add(Dense(10))
+model.add(Dense(12))
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
 

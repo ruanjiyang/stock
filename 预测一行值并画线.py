@@ -10,20 +10,20 @@ from keras.models import Sequential,save_model,load_model
 from keras.layers import Dense, LSTM, BatchNormalization
  
 #需要之前90次的数据来预测下一次的数据
-need_num = 12 #一般按周来算，选择5周.  按照天来算，选择60~90天。
+need_num = 120 #一般按周来算，选择5周.  按照天来算，选择60~90天。
 epoch = 5
 batch_size = 4  #batch_size越低， 预测精度越搞，曲线越曲折。
 patience_times=6
 
 
-stockCode="000001-monthly-index"
+stockCode="000001-weekly-index"
 scale_rate=np.array([7000,7000,7000,7000,0.25*1e12,0.25*1e13])   #上证周K线用。
 #scale_rate=np.array([3000,3000,3000,3000,1e8,1e9]) #上证月K线用。
 
 
 model=load_model(stockCode+".h5")
 
-predict_days=1  #一共预测几天（不包括今天）
+predict_days=20  #一共预测几天（不包括今天）
 
 dataset = pd.read_csv(stockCode+'.csv')
 dataset=dataset.fillna(0)
@@ -37,9 +37,12 @@ dataset = pd.read_csv(stockCode+'.csv')
 dataset=dataset.fillna(0)
 dataset = dataset.iloc[:, 3:features_num+3].values
 
+sc = MinMaxScaler(feature_range=(0, 1))
+dataset_scaled = sc.fit_transform(X=dataset[:training_num])
 
 for days in range(predict_days):   #填入延长预测的天数。（n
-    dataset_scaled=dataset/scale_rate
+    #dataset_scaled=dataset/scale_rate  #使用我定义的 scale_rate
+    dataset_scaled = sc.transform(X=dataset)
     x_validation=[]
     for i in range(need_num, dataset_scaled.shape[0]+1):
         x_validation.append(dataset_scaled[i-need_num: i])
@@ -47,23 +50,27 @@ for days in range(predict_days):   #填入延长预测的天数。（n
     x_validation = np.reshape(x_validation, (-1, need_num, features_num))
     predictes_stock_price = model.predict(x=x_validation)
     
-    predictes_stock_price=predictes_stock_price*scale_rate
+    #predictes_stock_price=predictes_stock_price*scale_rate #使用我的scale_rate
+    predictes_stock_price = sc.inverse_transform(X=predictes_stock_price)
+    dataset=np.vstack((dataset,predictes_stock_price[-1]))
+    
 
 
    
 predictes_stock_price=np.vstack((real_stock_price[0:need_num],predictes_stock_price))
+
 print(predictes_stock_price[-1])
 
 print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 print(real_stock_price[-1])
 
 plt.figure(11)  #23
-total_days_on_grid=10
+total_days_on_grid=60
 plt.xticks(np.arange(0,total_days_on_grid+1,1))
 plt.grid(axis='x',linestyle='-.')
 plt1=plt.subplot(111) #231
 plt1.set_title('close',loc='right',fontstyle='italic')
-plt.plot(predictes_stock_price[-total_days_on_grid-1:-1,0], color='blue', label='1',linestyle='-')
+plt.plot(predictes_stock_price[-total_days_on_grid-predict_days:-1,0], color='blue', label='1',linestyle='-')
 plt.plot(real_stock_price[-total_days_on_grid:-1,0], color='red')
 plt.legend()
 plt.show()

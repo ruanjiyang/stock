@@ -47,3 +47,9 @@ pro = ts.pro_api('db42fb5372bce72ab61f22ef0a3310d5c441f09d17817f1cafd3ace2')
 df = pro.index_monthly(ts_code='000001.SH',adj='qfq',start_date=set_start_date, end_date=set_end_date,  fields='ts_code,trade_date,open,high,low,close,vol,amount')
 df.sort_values(by='trade_date', inplace=True)
 df.to_csv('000001-monthly-index.csv',header=1) 
+
+
+pro = ts.pro_api('db42fb5372bce72ab61f22ef0a3310d5c441f09d17817f1cafd3ace2')
+df =pro.moneyflow_hsgt(start_date='20180125', end_date='20180808')
+df.sort_values(by='trade_date', inplace=True)
+df.to_csv('沪港通资金流数据.csv',header=1) 
