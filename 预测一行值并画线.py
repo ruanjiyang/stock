@@ -10,7 +10,7 @@ from keras.models import Sequential,save_model,load_model
 from keras.layers import Dense, LSTM, BatchNormalization
  
 #需要之前90次的数据来预测下一次的数据
-need_num = 120 #一般按周来算，选择5周.  按照天来算，选择60~90天。
+need_num = 240 #一般按周来算，选择5周.  按照天来算，选择60~90天。
 epoch = 5
 batch_size = 4  #batch_size越低， 预测精度越搞，曲线越曲折。
 patience_times=6
