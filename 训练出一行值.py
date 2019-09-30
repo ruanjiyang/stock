@@ -13,15 +13,10 @@ from keras.optimizers import RMSprop,Adam
  
 #需要之前90次的数据来预测下一次的数据
 need_num = 240 #一般按周来算，选择5周.  按照天来算，选择60~90天。
-epoch = 10
+epoch = 50
 batch_size = 4  #batch_size越低， 预测精度越搞，曲线越曲折。
-patience_times=3
-
-
-stockCode="000001-weekly-index"
-scale_rate=np.array([7000,7000,7000,7000,0.25*1e12,0.25*1e13])   #上证周K线用。
-#scale_rate=np.array([3000,3000,3000,3000,1e8,1e9]) #上证月K线用。
-
+patience_times=8
+stockCode="600036.SH"
 
 #训练数据的处理，我们选取整个数据集的前6000个数据作为训练数据，后面的数据为测试数据
 #从csv读取数据
@@ -43,7 +38,6 @@ fit_transform()对部分数据先拟合fit，
 然后对该trainData进行转换transform，从而实现数据的标准化、归一化等等。
 '''
 training_dataset_scaled = sc.fit_transform(X=training_dataset)
-#training_dataset_scaled=training_dataset/scale_rate  #使用我定义的scale_rate
 
 x_train = []
 y_train = []
@@ -51,8 +45,6 @@ y_train = []
 for i in range(need_num, training_dataset_scaled.shape[0]):
     x_train.append(training_dataset_scaled[i-need_num: i])
     y_train.append(training_dataset_scaled[i, :])
-    # x_train.append(training_dataset[i-need_num: i])
-    # y_train.append(training_dataset[i, :])
 #将数据转化为数组
 x_train, y_train = np.array(x_train), np.array(y_train)
 #因为LSTM要求输入的数据格式为三维的，[training_number, time_steps, 1]，因此对数据进行相应转化

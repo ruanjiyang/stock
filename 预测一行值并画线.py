@@ -10,20 +10,19 @@ from keras.models import Sequential,save_model,load_model
 from keras.layers import Dense, LSTM, BatchNormalization
  
 #需要之前90次的数据来预测下一次的数据
-need_num = 240 #一般按周来算，选择5周.  按照天来算，选择60~90天。
-epoch = 5
+need_num = 180 #一般按周来算，选择5周.  按照天来算，选择60~90天。
+epoch = 20
 batch_size = 4  #batch_size越低， 预测精度越搞，曲线越曲折。
 patience_times=6
+stockCode="600036.SH"
 
-
-stockCode="000001-weekly-index"
-scale_rate=np.array([7000,7000,7000,7000,0.25*1e12,0.25*1e13])   #上证周K线用。
+#scale_rate=np.array([7000,7000,7000,7000,0.25*1e12,0.25*1e13])   #上证周K线用。
 #scale_rate=np.array([3000,3000,3000,3000,1e8,1e9]) #上证月K线用。
 
 
 model=load_model(stockCode+".h5")
 
-predict_days=20  #一共预测几天（不包括今天）
+predict_days=50  #一共预测几天（不包括今天）
 
 dataset = pd.read_csv(stockCode+'.csv')
 dataset=dataset.fillna(0)
@@ -65,7 +64,7 @@ print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 print(real_stock_price[-1])
 
 plt.figure(11)  #23
-total_days_on_grid=60
+total_days_on_grid=400
 plt.xticks(np.arange(0,total_days_on_grid+1,1))
 plt.grid(axis='x',linestyle='-.')
 plt1=plt.subplot(111) #231
@@ -80,7 +79,7 @@ plt.show()
 successful_rate=0
 predictes_raise=False
 real_stock_price_raise=False
-for i in range(training_num-1):
+for i in range(need_num,training_num-1):
     if predictes_stock_price[i+1][0]-predictes_stock_price[i][0] > 0: #涨
         predictes_raise=True
     else:
@@ -94,4 +93,4 @@ for i in range(training_num-1):
     if predictes_raise==real_stock_price_raise:
         successful_rate=successful_rate+1
     
-print("总的涨跌预测正确率:",successful_rate/training_num*100, "%" )
+print("总的涨跌预测正确率:",successful_rate/(training_num-2-need_num)*100, "%" )
